@@ -4,7 +4,7 @@ const server = require('./server');
 const router = express.Router();
 const actions = require('./actions');
 const {
-	apiHome,
+	serveHome,
 	getAll,
 	get1,
 	create1,
@@ -12,11 +12,11 @@ const {
 	delete1,
 } = require('./actions');
 
-router.get('/', apiHome);
+router.get('/', serveHome);
 router.get('/getAll', getAll);
-/* router.get('/get1/:id', get1);
+router.get('/get1/:id', get1);
 router.post('/create1', create1);
 router.put('/update1/:id', update1);
-router.put('/delete1', delete1); */
+router.delete('/delete1/:id', delete1);
 
 module.exports = router;

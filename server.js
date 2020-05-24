@@ -5,7 +5,7 @@ const cors = require('cors');
 require('dotenv/config');
 routes = require('./routes');
 
-server.use(cors);
+server.use(cors());
 
 server.use(bodyParser.json());
 server.use(
@@ -14,13 +14,13 @@ server.use(
 	})
 );
 
-// default route
+/* // default route
 server.get('/', function (req, res) {
 	return res.sendFile(__dirname + '/public/index.html');
-});
+}); */
 
 // mysql-routes
-server.use('/mysql', routes);
+server.use('/', routes);
 
 // set port
 server.listen(process.env.PORT, function () {

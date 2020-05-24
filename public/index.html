@@ -1,14 +1,274 @@
+<!-- UGLY FRONT -->
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="description" content="" />
-		<title>labb 2</title>
+		<title>labb2 - mysql</title>
+
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+		<style>
+			.air {
+				margin: 10px;
+			}
+
+			.airInside {
+				padding: 10px;
+			}
+
+			.container {
+				display: flex;
+				width: fit-content;
+			}
+
+			.col {
+				flex-direction: column;
+			}
+
+			.box {
+				width: fit-content;
+				min-width: 500px;
+				min-height: 400px;
+			}
+
+			.cloudy {
+				box-shadow: 0 0 10px #ccc;
+				border-radius: 5px;
+			}
+
+			button,
+			input {
+				width: 100px;
+				height: 30px;
+				border: none;
+				outline: none;
+				cursor: pointer;
+			}
+
+			input {
+				text-align: center;
+			}
+
+			a {
+				text-decoration: none;
+				color: skyblue;
+
+				width: 100px;
+				height: 30px;
+			}
+
+			.option {
+				width: fit-content;
+			}
+		</style>
 	</head>
 	<body>
-		<h1>Welcome to labb 2 - nodejs & mysql</h1>
+		<h1>Welcome to MYSQL api</h1>
 
-		<a href="mysql">MYSQL API</a>
+		<div class="container col air">
+			<button id="getAllBtn" class="cloudy">Get all friends</button>
+		</div>
+
+		<div>
+			<form action="#" onsubmit="addHandler();return false">
+				<input
+					id="nameInput"
+					class="air cloudy"
+					type="text"
+					maxlength="30"
+					pattern="[a-zA-Z0-9- ]+"
+					placeholder="name"
+					required
+					name="name"
+				/>
+				<input
+					id="powerInput"
+					class="air cloudy"
+					type="text"
+					maxlength="30"
+					pattern="[a-zA-Z0-9- ]+"
+					placeholder="secret power"
+					required
+					name="power"
+				/>
+				<input class="air cloudy" type="submit" value="add friend" />
+			</form>
+		</div>
+		<div id="outputContainer" class="air airInside box cloudy">
+			<h2>Output</h2>
+			<div class="container col" id="output"></div>
+		</div>
+
+		<script>
+			const optionTriggers = (info) => {
+				// info
+				[...document.querySelectorAll('button.friend-info')].forEach(
+					(btn) => {
+						btn.addEventListener('click', () => {
+							const friendID = btn.getAttribute('friendID');
+							const friendName = document
+								.querySelector(`#friend-${friendID}`)
+								.getAttribute('name');
+
+							const conf = {
+								type: 'get',
+								action: info ? 'getAll' : 'get1',
+								id: info ? '' : friendID,
+							};
+
+							doAction(conf);
+						});
+					}
+				);
+
+				// del
+				[...document.querySelectorAll('button.del-friend')].forEach(
+					(btn) => {
+						btn.addEventListener('click', () => {
+							const friendID = btn.getAttribute('friendID');
+							const friendName = document
+								.querySelector(`#friend-${friendID}`)
+								.getAttribute('name');
+
+							doAction({
+								type: 'delete',
+								action: 'delete1',
+								id: friendID,
+								callback: () => console.log(`${friendName} deleted!`),
+							});
+						});
+					}
+				);
+			};
+
+			const printFriends = ({
+				title = '',
+				friends,
+				power: info = false,
+			}) => {
+				friends = friends.sort((a, b) => (a.name < b.name ? -1 : 1));
+
+				output.innerHTML = '';
+				let html = `<h3>${title}</h3>`;
+
+				// sooooo ugly print
+				friends.forEach((friend, nth) => {
+					html += `<div class="container col">`;
+
+					html += `<div class="container">`;
+
+					html += `<p ${
+						info ? 'style="font-size: 1.4em"' : ''
+					} id="friend-${friend.id}" name="${friend.name}">
+			                        ${friend.name}${
+						info ? ` has power ${friend.power}` : ''
+					}
+			                    </p>`;
+
+					html += `<button class="friend-info air cloudy option" friendID="${
+						friend.id
+					}">${info ? 'back' : 'info'}</button>`;
+
+					html += `<button class="del-friend air cloudy option" friendID="${friend.id}">end friendship</button>`;
+
+					html += `</div>`;
+
+					html += `<div class="container">`;
+
+					html += info
+						? `<form action="#" onsubmit="updateHandler();return false">
+			                            <input
+			                                id="updateNameInput"
+			                                class="air cloudy"
+			                                type="text"
+			                                maxlength="30"
+			                                pattern="[a-zA-Z0-9- ]+"
+			                                placeholder="update name"
+			                                name="name"
+			                            />
+			                            <input
+			                                id="updatePowerInput"
+			                                class="air cloudy"
+			                                type="text"
+			                                maxlength="30"
+			                                pattern="[a-zA-Z0-9- ]+"
+			                                placeholder="update power"
+			                                name="power"
+			                                friendID="${friend.id}"
+			                            />
+			                            <input class="air cloudy" type="submit" value="update friend" />
+			                    </form>`
+						: '';
+					html += `</div>`;
+
+					html += `</div>`;
+				});
+
+				output.innerHTML = html;
+
+				optionTriggers(info);
+			};
+
+			const doAction = ({ type, action, id, body, callback }) => {
+				var output = document.querySelector('#output');
+
+				console.log('id to del', id);
+
+				axios[type](`/${action}${id ? `/${id}` : ''}`, body)
+					.then(function (res) {
+						printFriends({
+							title: 'My friends',
+							friends: res.data.data,
+							power:
+								action === 'get1' || action === 'update1'
+									? true
+									: false,
+						});
+
+						if (typeof callback === 'function') callback();
+					})
+					.catch(function (err) {
+						output.innerHTML = err;
+					});
+			};
+
+			document.querySelector('#getAllBtn').onclick = () => {
+				doAction({ type: 'get', action: 'getAll' });
+			};
+
+			const addHandler = (e) => {
+				const name = document.querySelector('#nameInput');
+				const power = document.querySelector('#powerInput');
+
+				doAction({
+					type: 'post',
+					action: 'create1',
+					body: { name: name.value, power: power.value },
+					callback: () => {
+						name.value = '';
+						power.value = '';
+					},
+				});
+			};
+
+			const updateHandler = (e) => {
+				const name = document.querySelector('#updateNameInput');
+				const power = document.querySelector('#updatePowerInput');
+				const friendID = power.getAttribute('friendID');
+
+				doAction({
+					type: 'put',
+					action: 'update1',
+					id: friendID,
+					body: { name: name.value, power: power.value },
+					callback: () => {
+						name.value = '';
+						power.value = '';
+					},
+				});
+			};
+		</script>
 	</body>
 </html>

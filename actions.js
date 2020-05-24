@@ -28,31 +28,131 @@ const fail = (err) => ({
 	error: err,
 });
 
-const apiHome = (req, res) => {
-	return res.sendFile(__dirname + '/public/mysql/index.html');
+const serveHome = (req, res) => {
+	return res.sendFile(__dirname + '/public/index.html');
 };
 
 const getAll = (req, res) => {
-	db.query('SELECT * FROM secret_friends', function (err, result, fields) {
+	db.query('SELECT * FROM secret_friends', function (err, result) {
 		if (err) {
-			console.log(fail);
+			console.log(fail(err));
 			return res.status(404).json(fail(err));
 		}
 
+		console.log(success(result));
 		return res.status(200).json(success(result));
 	});
 };
 
-const get1 = (req, res) => {};
-const create1 = (req, res) => {};
-const update1 = (req, res) => {};
-const delete1 = (req, res) => {};
+const get1 = (req, res) => {
+	const { id } = req.params;
+
+	db.query(`SELECT * FROM secret_friends WHERE id = ${id}`, function (
+		err,
+		result
+	) {
+		if (err) {
+			console.log(fail(err));
+			return res.status(404).json(fail(err));
+		}
+
+		console.log(success(result));
+		return res.status(200).json(success(result));
+	});
+};
+
+const create1 = (req, res) => {
+	const { name, power } = req.body;
+
+	db.query(
+		`INSERT INTO secret_friends (name, power) VALUES ('${name}', '${power}')`,
+		function (err) {
+			if (err) {
+				console.log(fail(err));
+				return res.status(404).json(fail(err));
+			}
+
+			db.query('SELECT * FROM secret_friends', function (err, result) {
+				if (err) {
+					console.log(fail(err));
+					return res.status(404).json(fail(err));
+				}
+
+				console.log(success(result));
+				return res.status(200).json(success(result));
+			});
+		}
+	);
+};
+
+const update1 = (req, res) => {
+	console.log('update...');
+	const { id } = req.params;
+	const { name: newName, power: newPower } = req.body;
+
+	db.query(`SELECT * FROM secret_friends WHERE id = ${id}`, function (
+		err,
+		toUpdate
+	) {
+		if (err) {
+			console.log(fail(err));
+			return res.status(404).json(fail(err));
+		}
+
+		const { name: origName, power: origPower } = toUpdate[0];
+
+		const name = newName || origName;
+		const power = newPower || origPower;
+
+		const query = `UPDATE secret_friends SET name = ?, power = ? WHERE id = ?`;
+		db.query(query, [name, power, id], function (err) {
+			if (err) {
+				console.log(fail(err));
+				return res.status(404).json(fail(err));
+			}
+
+			db.query(`SELECT * FROM secret_friends WHERE id = ${id}`, function (
+				err,
+				result
+			) {
+				if (err) {
+					console.log(fail(err));
+					return res.status(404).json(fail(err));
+				}
+
+				console.log(success(result));
+				return res.status(200).json(success(result));
+			});
+		});
+	});
+};
+
+const delete1 = (req, res) => {
+	const { id } = req.params;
+
+	db.query(`DELETE FROM secret_friends WHERE id = ${id}`, function (err) {
+		if (err) {
+			console.log(fail(err));
+			return res.status(404).json(fail(err));
+		}
+
+		db.query('SELECT * FROM secret_friends', function (err, result) {
+			if (err) {
+				console.log(fail(err));
+				return res.status(404).json(fail(err));
+			}
+
+			console.log(success(result));
+			return res.status(200).json(success(result));
+		});
+	});
+};
 
 module.exports = {
-	apiHome,
+	serveHome,
 	getAll,
-	/* get1,
-    create1,
-    update1,
-    delete1 */
+	get1,
+	create1,
+	update1,
+	delete1,
 };
