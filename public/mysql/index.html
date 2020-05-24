@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="" />
+		<title>labb2 / mysql</title>
+
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+		<style>
+			.air {
+				margin: 10px;
+			}
+
+			.airInside {
+				padding: 10px;
+			}
+
+			.container {
+				display: flex;
+				width: fit-content;
+			}
+
+			.col {
+				flex-direction: column;
+			}
+
+			.box {
+				width: fit-content;
+				min-width: 500px;
+				min-height: 400px;
+			}
+
+			.cloudy {
+				box-shadow: 0 0 10px #ccc;
+				border-radius: 5px;
+			}
+
+			button {
+				width: 100px;
+				height: 30px;
+				border: none;
+				outline: none;
+				cursor: pointer;
+			}
+
+			a {
+				text-decoration: none;
+				color: skyblue;
+
+				width: 100px;
+				height: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Welcome to MYSQL api</h1>
+
+		<div class="container col air">
+			<a href="../">HOME</a>
+
+			<button id="getAllBtn" class="cloudy">Get all friends</button>
+		</div>
+
+		<div id="outputContainer" class="air airInside box cloudy">
+			<h2>Output</h2>
+			<div id="output"></div>
+		</div>
+
+		<script>
+			const getAll = () => {
+				var output = document.querySelector('#output');
+				output.innerHTML = '';
+
+				axios
+					.get('localhost:5000/mysql/getAll')
+					.then(function (response) {
+						output.innerHTML = generateSuccessHTMLOutput(response);
+					})
+					.catch(function (error) {
+						output.innerHTML = generateErrorHTMLOutput(error);
+					});
+			};
+
+			document.querySelector('#getAllBtn').onclick = () => {
+				getAll();
+			};
+		</script>
+	</body>
+</html>
